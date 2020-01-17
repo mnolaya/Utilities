@@ -1,10 +1,11 @@
 %% INPUTS
 
-prefix = '75OS';
+prefix = 'FS';
 nFrames = 20;
 refTime = 4;
 startTime = 6;
-workingDir = pwd;
+workingDir = uigetdir('C:\');
+addpath(workingDir)
 minTime = 10;
 
 %% CREATE IMAGES
@@ -19,14 +20,15 @@ minTime = 10;
 % second to last frame
 % All videos are stored in the created or already existing subdirectory
 
-vidNames = dir('*.mp4');
+vidNames = dir(fullfile(workingDir,'*.mp4'));
 nVids = length(vidNames);
-tStamps = zeros(nFrames+1,nVids);
+tStamps = cell(nVids,2);
 
 for i=1:nVids
 
     specimen = char(regexp(vidNames(i).name,'S\d\d','match'));
     subDir = [specimen,'-Images'];
+    
     switch exist(subDir,'dir')
         case 0
             mkdir(workingDir,subDir)
@@ -47,14 +49,15 @@ for i=1:nVids
     fileName = [prefix,'-',specimen,'_REF.jpg'];
     fullName = fullfile(workingDir,subDir,fileName);
     imwrite(img,fullName)
-
     startFrame = ceil(startTime*vidObj.FrameRate);
     frames = ceil(linspace(startFrame,vidObj.NumFrame-1,nFrames));
-    
-    tStamps(1,i) = vidObj.CurrentTime;
+    tStamps{i,1} = specimen;
+    tStamps{i,2} = zeros(nFrames+1,1);
+    tStamps{i,2}(1) = vidObj.CurrentTime;
     ii = 1;
     
     for j=1:nFrames
+        
         currentTime = frames(j)/vidObj.FrameRate;
         vidObj.CurrentTime = currentTime;
         img = readFrame(vidObj);
@@ -62,8 +65,8 @@ for i=1:nVids
             '.jpg'];
         fullName = fullfile(workingDir,subDir,fileName);
         imwrite(img,fullName)
-        
-        tStamps(j+1,i) = vidObj.CurrentTime;
+        tStamps{i,2}(j+1) = vidObj.CurrentTime;
         ii = ii+1;
+        
     end
 end
