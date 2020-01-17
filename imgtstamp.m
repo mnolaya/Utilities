@@ -20,19 +20,22 @@ addpath(vidLoc)
 
 vidNames = dir(fullfile(vidLoc,'*.mp4'));
 nVids = length(vidNames);
-tStamps = zeros(nFrames+1,nVids);
+tStamps = cell(nVids,2);
 
 for i=1:nVids
-
     specimen = char(regexp(vidNames(i).name,'S\d\d','match'));    
-    vidObj = VideoReader(vidNames(i).name);   
-    vidObj.CurrentTime = refTime;    
+    vidObj = VideoReader(vidNames(i).name);  
+    vidObj.CurrentTime = refTime;
+    
+    tStamps{i,1} = specimen;
+    tStamps{i,2} = zeros(nFrames+1,1);
+    tStamps{i,2}(1) = vidObj.CurrentTime;    
+    
     startFrame = ceil(startTime*vidObj.FrameRate);
-    frames = ceil(linspace(startFrame,vidObj.NumFrame-1,nFrames));
-        
+    frames = ceil(linspace(startFrame,vidObj.NumFrame-1,nFrames));       
     for j=1:nFrames
         currentTime = frames(j)/vidObj.FrameRate;
-        vidObj.CurrentTime = currentTime;     
-        tStamps(j+1,i) = vidObj.CurrentTime;
+        vidObj.CurrentTime = currentTime;
+        tStamps{i,2}(j+1) = vidObj.CurrentTime;
     end
 end
